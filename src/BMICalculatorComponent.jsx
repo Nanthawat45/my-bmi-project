@@ -12,7 +12,7 @@ function BMICalculatorComponent() {
     const calculator = new BMICalculator();
     const bmiValue = calculator.calculateBMI(parseFloat(weight), parseFloat(height));
     const interpretationValue = calculator.interpretBMI(bmiValue);
-
+// hahaha
     setBMI(bmiValue.toFixed(2));
     setInterpretation(interpretationValue);
   };
