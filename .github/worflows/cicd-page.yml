@@ -1,33 +1,52 @@
-
-name: 'build and deploy react app'
+name: 'build and deploy production'
 
 on:
   push:
-    branches: 
-      - main
+    tags:
+      - 'v1000'
 
 jobs:
-  build-and-deploy:
+  build-production-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Login to GitHub Container Registry (GHCR)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Build Docker Image
-        run: docker build -t ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}:latest .
-
-      - name: Verify React Build Output
-        run: |
-          CONTAINER_ID=$(docker create ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}:latest)
-          docker cp $CONTAINER_ID:/usr/share/nginx/html ./dist
-          docker rm -v $CONTAINER_ID
-          ls -la ./dist
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Set nodejs verstion to 18.x
+        uses: actions/setup-node@v3
         with:
-          branch: gh-pages
-          folder: dist
+          node-version: '18.x'
+          cache: 'npm'
+      
+      - run: npm ci
+
+      - name: Run build production (create dist folder)
+        run: npm run build
+    
+      - name: Upload dist folder artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-production
+          path: dist
+
+  deploy-to-production:
+    needs: build-production-job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download dist folder artifacts
+        uses: actions/download-artifact@v3
+        with:
+            name: dist-production
+            path: dist
+        
+      - run: ls dist
+      # ให้ deploy เอง เช่น ssh
+      
+      - uses: actions/checkout@v4
+      
+      - name: publish vue to github pages
+        uses: SerhiiKa/VuePagesAction@1.0.4
+        with:
+            username: ${{ github.actor }} #codingthailand
+            reponame: ${{ github.event.repository.name }}  #vue-github-app
+            token: ${{ secrets.GITHUB_TOKEN }}
+        
