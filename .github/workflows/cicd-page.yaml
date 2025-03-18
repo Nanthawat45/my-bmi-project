@@ -17,11 +17,11 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Docker Image
-        run: docker build -t ghcr.io/nanthawat45/${{ github.event.repository.name }}:latest .
+        run: docker build -t ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}:latest .
 
       - name: Verify React Build Output
         run: |
-          CONTAINER_ID=$(docker create ghcr.io/nanthawat45/${{ github.event.repository.name }}:latest)
+          CONTAINER_ID=$(docker create ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}:latest)
           docker cp $CONTAINER_ID:/usr/share/nginx/html ./dist
           docker rm -v $CONTAINER_ID
           ls -la ./dist
